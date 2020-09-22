@@ -103,7 +103,11 @@ impl<'c> Translation<'c> {
                         let output_local = mk().local(
                             mk().ident_pat(&output_name),
                             None as Option<P<Ty>>,
-                            Some(mk().mutbl().addr_of_expr(result)),
+                            Some(
+                                mk().cast_expr(
+                                    mk().mutbl().addr_of_expr(result),
+                                    mk().ident_ty("*mut _")
+                                )),
                         );
                         stmts.push(mk().local_stmt(P(output_local)));
 
@@ -117,6 +121,7 @@ impl<'c> Translation<'c> {
                         stmts.push(mk().local_stmt(P(inner_local)));
 
                         result = mk().ident_expr(&inner_name);
+                        let output_name = format!("&mut *{}", output_name);
                         operand_renames.insert(operand_idx, (output_name, inner_name));
                     } else {
                         self.use_crate(ExternCrate::C2RustAsmCasts);
